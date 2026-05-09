@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Management System</title>
+  
+  <!-- Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+
+  <!-- App Shell -->
+  <div id="app">
+    
+    <!-- Login View (Initially shown, shell hidden) -->
+    <div id="auth-view" style="width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background-color: var(--bg-body);">
+      <div class="card" style="width: 100%; max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <h2 style="color: var(--primary-color);"><i class="fa-solid fa-boxes-stacked"></i> InvenManage</h2>
+          <p class="text-muted" style="color: var(--text-muted); margin-top: 0.5rem;">Sign in to your account</p>
+        </div>
+        <form id="login-form">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="login-email" class="form-control" placeholder="admin@example.com" value="admin@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="********" value="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Shell (Initially hidden) -->
+    <div id="main-view" style="display: none; width: 100%; height: 100%;">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>InvenManage</span>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-item active" data-view="dashboard">
+            <i class="fa-solid fa-chart-pie nav-icon"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="nav-item" data-view="products">
+            <i class="fa-solid fa-box nav-icon"></i>
+            <span>Products</span>
+          </div>
+          <div class="nav-item" data-view="orders">
+            <i class="fa-solid fa-cart-shopping nav-icon"></i>
+            <span>Orders</span>
+          </div>
+          <div class="nav-item" data-view="suppliers">
+            <i class="fa-solid fa-truck-field nav-icon"></i>
+            <span>Suppliers</span>
+          </div>
+          <div class="nav-item" data-view="inventory">
+            <i class="fa-solid fa-clipboard-list nav-icon"></i>
+            <span>Inventory Logs</span>
+          </div>
+          <div class="nav-item" data-view="settings">
+            <i class="fa-solid fa-gear nav-icon"></i>
+            <span>Settings</span>
+          </div>
+          <div class="nav-item" id="logout-btn" style="margin-top: auto; color: var(--danger);">
+            <i class="fa-solid fa-right-from-bracket nav-icon"></i>
+            <span>Logout</span>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Wrapper -->
+      <div class="main-wrapper">
+        <!-- Header -->
+        <header class="top-header">
+          <div class="header-left">
+            <button class="mobile-toggle" id="mobile-toggle">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="search-box" style="width: 250px;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" placeholder="Global Search...">
+            </div>
+          </div>
+          <div class="header-right">
+            <div>
+              <select class="form-control" style="font-weight: 500; border: none; background: var(--secondary-color);">
+                <option>Main Warehouse (NY)</option>
+                <option>Secondary Warehouse (CA)</option>
+              </select>
+            </div>
+            <div class="header-action" id="notification-toggle" style="position:relative;">
+              <i class="fa-regular fa-bell" style="font-size: 1.25rem;"></i>
+              <span class="badge" id="notification-badge" style="display:none;">0</span>
+              <!-- Notifications Dropdown -->
+              <div class="dropdown-panel" id="notification-dropdown" style="display:none; position:absolute; top:35px; right:-10px; width:320px; background:var(--bg-surface); box-shadow:var(--shadow-md); border-radius:var(--radius-md); border:1px solid var(--border-color); z-index:1000;">
+                <div style="padding:1rem; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                  <h4 style="margin:0; font-size:1rem;">Notifications</h4>
+                  <span style="font-size:0.75rem; color:var(--primary-color); cursor:pointer; font-weight:500;" id="mark-notifications-read">Mark all as read</span>
+                </div>
+                <div id="notification-list" style="max-height:300px; overflow-y:auto; padding:0;">
+                  <div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.875rem;">Loading...</div>
+                </div>
+              </div>
+            </div>
+            <div class="user-profile">
+              <div class="avatar">A</div>
+              <span id="user-name-display">Admin User</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main class="main-content" id="content-area">
+          <!-- Views will be injected here via JS -->
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toasts -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Global Modal Container -->
+  <div class="modal-overlay" id="global-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal Title</h3>
+        <button class="close-modal" id="close-modal">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamic Form Content -->
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn btn-outline" id="modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core JS -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <!-- View Controllers -->
+  <script src="/js/views/dashboard.js"></script>
+  <script src="/js/views/products.js"></script>
+  <script src="/js/views/orders.js"></script>
+  <script src="/js/views/suppliers.js"></script>
+  <script src="/js/views/settings.js"></script>
+  <!-- App Init -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
